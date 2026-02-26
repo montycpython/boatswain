@@ -1,3 +1,5 @@
+# boatswain
+A way to sharpen DevOps and Logistics Ops using 17th Century Maritime Concepts...
 Building an Android App
 On an Android Phone
 Using vim as an editor
