@@ -81,9 +81,9 @@ $(COMPILED_RES)/%.flat: Sources/res/%
 	mkdir -p $(COMPILED_RES)
 	aapt2 compile -o $(COMPILED_RES) $< || { echo "aapt2 compile failed for $<"; exit 1; }
 
-# We need to collect all resource files. This is a simplified rule – 
-# for a real project you'd use a wildcard or a list. Here we assume
-# you have a single directory; aapt2 compile can process a whole dir.
+# We need to collect all resource files. This is a simplified rule 
+# for a real project I'd use a wildcard or a list. Here I have
+# a single directory; aapt2 compile can process a whole dir.
 # Let's use a simpler approach: compile the whole res directory at once.
 $(COMPILED_RES)/all.flags: Sources/res
 	mkdir -p $(COMPILED_RES)
@@ -161,7 +161,7 @@ bosun001.apk: $(TEMP_APK) $(KEYSTOREFILE)
 		--v2-signing-enabled true \
 		--v3-signing-enabled true \
 		--out bosun001.apk bosun001-unaligned.apk || { echo "Signing failed"; exit 1; }
-	@echo "APK created: bosun001.apk"
+	@echo "$$$$$$$$$$$$ APK created: bosun001.apk $$$$$$$$$$$$"
 	# Optionally copy to downloads
 	cp bosun001.apk ~/storage/downloads/ 2>/dev/null || true
 
