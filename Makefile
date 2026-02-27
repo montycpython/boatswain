@@ -34,7 +34,7 @@ CFLAGS += -I. -I$(RAWDRAWANDROID)/rawdraw -I$(PREFIX)/include -fPIC
 LDFLAGS += -lm -lGLESv3 -lEGL -landroid -llog -lOpenSLES
 LDFLAGS += -shared -uANativeActivity_onCreate -L$(PREFIX)/lib -s
 
-STOREPASS?=montavious
+STOREPASS?=xxxxxxxxxxxx
 KEYSTOREFILE:=my-release-key.keystore
 ALIASNAME?=standkey
 DNAME:="CN=$(APPNAME), O=$(APPNAME), C=US"
