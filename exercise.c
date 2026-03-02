@@ -22,7 +22,7 @@ void sp(UserProgress up) {
 }
 
 UserProgress load_progress() {
-    UserProgress up = {"Saitama", 1, 1};
+    UserProgress up = {"Saitama", 1, 1, 0};
     FILE *f = fopen("progress.dat", "rb");
     if (f) {
         fread(&up, sizeof(UserProgress), 1, f);
@@ -31,7 +31,7 @@ UserProgress load_progress() {
     return up;
 }
 
-int main(int argc, char *argv[]) {
+int main(void){
     setlocale(LC_ALL, "");
     initscr();
     cbreak();
@@ -39,11 +39,15 @@ int main(int argc, char *argv[]) {
     keypad(stdscr, TRUE);
 
     UserProgress up = load_progress();
-    int row, col;
-    getmaxyx(stdscr, row, col);
+    int col = getmaxx(stdscr);
+    //getmaxyx(stdscr, row, col);
     char tBuffer[80];
     struct tm *info = localtime(&up.woTime);
-    strftime(tBuffer, sizeof(tBuffer), "%A @%I:%M %p", info);
+    if (info) {
+        strftime(tBuffer, sizeof(tBuffer), "%A @%I:%M %p", info);
+    } else {
+        snprintf(tBuffer, sizeof(tBuffer), "No record available.");
+    }
     int pushups = (up.start_day_pushups > 100) ? 100 : up.start_day_pushups;
     int lunge_progression = ((up.current_day_overall + 1) / 2) * 2;
     int lunges = (lunge_progression > 100) ? 100 : lunge_progression;
@@ -126,8 +130,8 @@ int main(int argc, char *argv[]) {
 refresh();
     sleep(5);
     for (int i = 1; i <= (lunges * 2); i++) {
-    mvprintw(12, (col - 20) / 2, "Lunge Rep: %d", i);
     move(12, 0);    clrtoeol();
+    mvprintw(12, (col - 20) / 2, "Lunge Rep: %d", i);
     mvprintw(13, 0, "🥷⛴️⌚💪🏾💯");    
     refresh();
     sleep(2); // The 2-second cadence
