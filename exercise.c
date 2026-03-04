@@ -23,21 +23,12 @@
 *TUI View for The Deck
 *For Personal Maintenance/Warm-Up
 *For Delivery/ Fulfillment / Respiratory fun
-*Modifiable from the Bridge
-*
-*
-*
-*
-* 
-*/
+*Modifiable from the Bridge*/
 int turbo = 0;
 typedef struct {
     char user_name[50];
-    int start_day_pushups;
-    int current_day_overall;
-    time_t woTime;
-    int session_failed;
-    int failed_exercise;
+    int start_day_pushups; int current_day_overall; time_t woTime;
+    int session_failed; int failed_exercise;
     int failed_reps_remaining;
     int failed_time_remaining;
     time_t fail_time;
@@ -300,23 +291,19 @@ int main(void) {
     int inverted_rows = (row_progression > 50) ? 50 : row_progression;
     int pullup_progression = 1 + ((day - 1) / 3);
     int pullups = (pullup_progression > 34) ? 34 : pullup_progression;
-    while (1) {
-        clear();
+    while (1) { clear();
         display_menu(up, day, glute_bridges, dead_bugs, lunges, pushups,
              plank_time, inverted_rows, pullups, hang_time);
         mvprintw(20, (getmaxx(stdscr) - 20) / 2, "MODE: [%s]", turbo ? "BEAST" : "NORMAL");
-
         custom_flash(3, 250); flushinp();
         int ch;
         while ((ch = getch()) != 's') {
             if (ch == 't') {
-            turbo = !turbo;
-            clear();
+            turbo = !turbo; clear();
             display_menu(up, day, glute_bridges, dead_bugs, lunges, pushups, plank_time, inverted_rows, pullups, hang_time);
             mvprintw(20, (getmaxx(stdscr) - 20) / 2, "MODE: [%s]", turbo ? "BEAST" : "NORMAL");
             refresh(); continue;
             }
-
             if (ch == 'q') {
                 endwin(); return 0;
             } else if (ch == 'r') {
@@ -329,16 +316,14 @@ int main(void) {
                         custom_flash(3, 50);
                         int ac = getch();
                         if (ac == 'a' || ac == 'w' || ac == 'h' || ac == 's') {
-                    aborted = 1;
-                    move(19, 0); clrtoeol();
+                    aborted = 1; move(19, 0); clrtoeol();
                     mvprintw(19, 0, "Continue, 🫡🌞😆🤑💯💰💪🏾 \nYou decided to persevere.");
                     refresh(); break;
                         }
                     }
                     if (aborted) break;
                     move(17, 0); clrtoeol();
-                    center_print(17, "PRESS 'A', 'W', 'S', or 'H' TO ABORT 'R'");
-                    refresh();
+                    center_print(17, "PRESS 'A', 'W', 'S', or 'H' TO ABORT 'R'"); refresh();
                 }
                 cbreak();
                 if (aborted) {
