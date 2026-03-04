@@ -6,8 +6,8 @@
 #include <string.h>
 #include <time.h>
 /*Program attempts to solve the issue of
- *Calesthetics to build and maintain 
- *Physical Work Capacity...
+*Calesthetics to build and maintain 
+*Physical Work Capacity...
  *01 Nervous - Bridge - CEO & Strategy
  *02 Cardiovascular - Propulsion - Sales
  *03 Respiratory - The Deck - Fulfillment
@@ -26,6 +26,12 @@
 *Modifiable from the Bridge
 *
 *
+*
+*
+*
+*
+*
+* 
 */
 typedef struct {
     char user_name[50];
@@ -77,8 +83,7 @@ void center_print(int row, const char *fmt, ...) {
     va_end(args);
     mvprintw(row, (getmaxx(stdscr) - strlen(buf)) / 2, "%s", buf);
 }
-void display_menu(UserProgress up, int day, int hang_time, int dead_bugs, int lunges, 
-                  int pushups, int inverted_rows, int glute_bridges, int plank_time, int pullups) {
+void display_menu(UserProgress up, int day, int glute_bridges, int dead_bugs, int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int hang_time) {
     int col = getmaxx(stdscr);
     char tBuffer[80];
     struct tm *info = localtime(&up.woTime);
@@ -120,7 +125,6 @@ int do_static_hold(UserProgress *up, int exercise_num, const char *name, int sec
         center_print(12, "%s TIME REMAINING: %d seconds", name, i);
         center_print(13, "%s", emoji);
         custom_flash(4, 200);
-        refresh();
         int key = getch();
         if (key == 'f') {
             // Save failure and return to menu
@@ -147,7 +151,6 @@ int do_static_hold(UserProgress *up, int exercise_num, const char *name, int sec
 int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, const char *emoji, const char *rep_label) {
     center_print(10, "Get ready for %s!", name);
     custom_flash(2, 200);
-    refresh();
     sleep(5);
     move(10, 0);
     clrtoeol();
@@ -169,7 +172,7 @@ int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, cons
             sp(*up);
             return 1;
         }
-        custom_flash(4, 150); refresh();
+        custom_flash(4, 150); 
         sleep(2);
     }
     flash();
@@ -182,26 +185,26 @@ int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, cons
 void run_workout(UserProgress *up, int col, int day, int glute_bridges, int dead_bugs, 
 int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int hang_time) {
     int start_exercise = 1;
-    int adjusted_hang = hang_time;
-    int adjusted_plank = plank_time;
+    int adjusted_bridges = glute_bridges;
     int adjusted_dead_bugs = dead_bugs;
     int adjusted_lunges = lunges;
     int adjusted_pushups = pushups;
+    int adjusted_plank = plank_time;
     int adjusted_rows = inverted_rows;
-    int adjusted_bridges = glute_bridges;
     int adjusted_pullups = pullups;
+    int adjusted_hang = hang_time;
     // Check if resuming failed session
     if (up->session_failed && up->failed_exercise > 0) {
         start_exercise = up->failed_exercise;
         // Restore remaining amounts
-        if (up->failed_exercise == 1) adjusted_hang = up->failed_time_remaining;
+        if (up->failed_exercise == 1) adjusted_bridges = up->failed_reps_remaining;
         else if (up->failed_exercise == 2) adjusted_dead_bugs = up->failed_reps_remaining;
         else if (up->failed_exercise == 3) adjusted_lunges = up->failed_reps_remaining;
         else if (up->failed_exercise == 4) adjusted_pushups = up->failed_reps_remaining;
         else if (up->failed_exercise == 5) adjusted_rows = up->failed_reps_remaining;
-        else if (up->failed_exercise == 6) adjusted_bridges = up->failed_reps_remaining;
-        else if (up->failed_exercise == 7) adjusted_plank = up->failed_time_remaining;
-        else if (up->failed_exercise == 8) adjusted_pullups = up->failed_reps_remaining;
+        else if (up->failed_exercise == 6) adjusted_plank = up->failed_time_remaining;
+        else if (up->failed_exercise == 7) adjusted_pullups = up->failed_reps_remaining;
+        else if (up->failed_exercise == 8) adjusted_hang = up->failed_time_remaining;
         // Clear failure flag since resuming
         up->session_failed = 0;
         up->failed_exercise = 0;
@@ -244,8 +247,7 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
     up->start_day_pushups++;
     up->current_day_overall++;
     up->woTime = time(NULL);
-    sp(*up);
-    refresh();
+    sp(*up); refresh();
     flushinp();
     while (getch() != 'x');
 }
@@ -282,7 +284,6 @@ int main(void) {
         display_menu(up, day, hang_time, dead_bugs, lunges, pushups, 
                               inverted_rows, glute_bridges, plank_time, pullups);
         custom_flash(3, 250);
-        refresh();
         flushinp();
         int ch;
         while ((ch = getch()) != 's') {
@@ -295,10 +296,9 @@ int main(void) {
                 for (int i = 15; i >= 0; i--) {
                     for (int j = 0; j < 10; j++) {
                         custom_flash(1, 50);
-                        custom_flash(3, 50);
                         mvprintw(19, 0, "Regimen Destruction in %d seconds", i);
                         printw(" 🫡🤔😢🥷🥶😭");
-                        refresh();
+                        custom_flash(3, 50);
                         int ac = getch();
                         if (ac == 'a' || ac == 'w' || ac == 'h' || ac == 's') {
                             aborted = 1;
