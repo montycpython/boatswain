@@ -103,8 +103,32 @@ void display_menu(UserProgress up, int day, int glute_bridges, int dead_bugs, in
     mvprintw(8, start_col, "4. Push-ups:      %3d reps", pushups);
     mvprintw(9, start_col, "5. Plank:         %3d seconds", plank_time);
     mvprintw(10, start_col, "6. Inverted Rows: %3d reps", inverted_rows);
-    mvprintw(11, start_col, "7. Pull-ups:      %3d reps", pullups);
-    mvprintw(12, start_col, "8. Bar Hang:      %3d seconds", hang_time);
+        // Port/Starboard watch alternation after day 25
+    int show_pullups = 1;
+    int show_hang = 1;
+    if (day > 25) {
+        int week = (day - 1) / 7;
+        int day_of_week = (day - 1) % 7;
+        if (week % 2 == 0) {
+            // Even week: Mon-Thu (0-3) = pullups, Fri-Sun (4-6) = hang
+            show_pullups = (day_of_week <= 3);
+            show_hang = !show_pullups;
+        } else {
+            // Odd week: Mon-Wed (0-2) = pullups, Thu-Sun (3-6) = hang
+            show_pullups = (day_of_week <= 2);
+            show_hang = !show_pullups;
+        }
+    }
+    if (show_pullups) {
+        mvprintw(11, start_col, "7. Pull-ups:      %3d reps", pullups);
+    } else {
+        mvprintw(11, start_col, "7. REST");
+    }
+    if (show_hang) {
+        mvprintw(12, start_col, "8. Bar Hang:      %3d seconds", hang_time);
+    } else {
+        mvprintw(12, start_col, "8. REST");
+    }
 /*
 //finish Exercise Preview
 */
@@ -233,14 +257,29 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
     if (start_exercise <= 6) {
         if (do_reps(up, 6, "Inverted Rows", adjusted_rows, "🥷🚣⌚💪🏾💯", "Row")) return;
     }
-    // Exercise 7: Pull-ups
-    if (start_exercise <= 7) {
+    // Determine which exercise to do after day 25
+    int do_pullups = 1;
+    int do_hang = 1;
+    if (day > 25) {
+        int week = (day - 1) / 7;
+        int day_of_week = (day - 1) % 7;
+        if (week % 2 == 0) {
+            do_pullups = (day_of_week <= 3);
+            do_hang = !do_pullups;
+        } else {
+            do_pullups = (day_of_week <= 2);
+            do_hang = !do_pullups;
+        }
+    }
+    // Exercise 7: Pull-ups (conditional)
+    if (do_pullups && start_exercise <= 7) {
         if (do_reps(up, 7, "Pull-ups", adjusted_pullups, "🥷🆙⌚💪🏾💯", "Pull-up")) return;
     }
-    // Exercise 8: Bar Hang
-    if (start_exercise <= 8) {
+    // Exercise 8: Bar Hang (conditional)
+    if (do_hang && start_exercise <= 8) {
         if (do_static_hold(up, 8, "Bar Hang", adjusted_hang, "🥷⛴️⌚💪🏾💯")) return;
     }
+
     // All complete
     center_print(10, "WORKOUT COMPLETE! GREAT JOB!");
     center_print(12, "Press 'x' to log and exit.");
