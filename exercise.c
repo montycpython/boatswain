@@ -19,7 +19,14 @@
  *09 Sensory - The Watch - Marketing/ MNGMT
  *10 Immuno-Lymphatic - The Ballast & Rudder
  *11 Reproductive - Harbor Master's Office/R&D
- *12 Integumentary - The Hull - Compliance && Legal*/
+ *12 Integumentary - The Hull - Compliance && Legal
+*TUI View for The Deck
+*For Personal Maintenance/Warm-Up
+*For Delivery/ Fulfillment / Respiratory fun
+*Modifiable from the Bridge
+*
+*
+*/
 typedef struct {
     char user_name[50];
     int start_day_pushups;
@@ -274,8 +281,8 @@ int main(void) {
         clear();
         display_menu(up, day, hang_time, dead_bugs, lunges, pushups, 
                               inverted_rows, glute_bridges, plank_time, pullups);
+        custom_flash(3, 250);
         refresh();
-        flash();
         flushinp();
         int ch;
         while ((ch = getch()) != 's') {
