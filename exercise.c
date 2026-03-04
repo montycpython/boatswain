@@ -33,10 +33,6 @@
 *
 *
 *
-*
-*
-*
-*
 * 
 */
 typedef struct {
@@ -70,6 +66,24 @@ UserProgress load_progress() {
             up.failed_reps_remaining = 0;
             up.failed_time_remaining = 0;
             up.fail_time = 0;
+        } else {
+            if (up.current_day_overall > 25 && up.woTime > 0) {
+            time_t now = time(NULL);
+            double seconds_elapsed = difftime(now, up.woTime);
+            int days_elapsed = (int)(seconds_elapsed / 86400);
+            if (days_elapsed >= 7) {
+            int periods = days_elapsed / 7;
+            int levels_lost = periods * 2;
+            up.current_day_overall -= levels_lost;
+            if (up.current_day_overall < 1) {
+            up.current_day_overall = 1;
+            }
+                up.session_failed = 0;
+                up.failed_exercise = 0;
+                up.failed_reps_remaining = 0;
+                up.failed_time_remaining = 0;
+                }
+            }
         }
     }
     return up;
@@ -171,16 +185,14 @@ int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, cons
     move(10, 0); clrtoeol();
     halfdelay(1);
     for (int i = 1; i <= reps; i++) {
-        move(12, 0);
-        clrtoeol();
-        center_print(12, "%s Rep: %d", rep_label, i);
-        center_print(13, "%s", emoji);
-        refresh();
+        move(12, 0); clrtoeol();
+center_print(12, "%s Rep: %d", rep_label, i);
+center_print(13, "%s", emoji); refresh();
         int key = getch();
         if (key == 'f') {
             up->session_failed = 1;
-            up->failed_exercise = exercise_num;
-            up->failed_reps_remaining = reps - i + 1;
+    up->failed_exercise = exercise_num;
+    up->failed_reps_remaining = reps - i + 1;
             up->failed_time_remaining = 0;
             up->fail_time = time(NULL);
             sp(*up);
@@ -188,10 +200,8 @@ int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, cons
         }
         custom_flash(4, 150); sleep(2);
     }
-    flash();
-    move(12, 0); clrtoeol();
-    move(13, 0); clrtoeol();
-    return 0;
+    flash(); move(12, 0); clrtoeol();
+    move(13, 0); clrtoeol(); return 0;
 }
 void run_workout(UserProgress *up, int col, int day, int glute_bridges, int dead_bugs, 
 int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int hang_time) {
@@ -204,10 +214,8 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
     int adjusted_rows = inverted_rows;
     int adjusted_pullups = pullups;
     int adjusted_hang = hang_time;
-    // Check if resuming failed session
     if (up->session_failed && up->failed_exercise > 0) {
         start_exercise = up->failed_exercise;
-        // Restore remaining amounts
         if (up->failed_exercise == 1) adjusted_bridges = up->failed_reps_remaining;
         else if (up->failed_exercise == 2) adjusted_dead_bugs = up->failed_reps_remaining;
         else if (up->failed_exercise == 3) adjusted_lunges = up->failed_reps_remaining;
@@ -216,7 +224,6 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
         else if (up->failed_exercise == 6) adjusted_rows = up->failed_reps_remaining;
         else if (up->failed_exercise == 7) adjusted_pullups = up->failed_reps_remaining;
         else if (up->failed_exercise == 8) adjusted_hang = up->failed_time_remaining;
-        // Clear failure flag since resuming
         up->session_failed = 0;
         up->failed_exercise = 0;
     } // Exercise 1: Glute Bridges
@@ -237,10 +244,8 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
     } // Exercise 6: Inverted Rows
     if (start_exercise <= 6) {
         if (do_reps(up, 6, "Inverted Rows", adjusted_rows, "🥷🚣⌚💪🏾💯", "Row")) return;
-    }
-    // Determine which exercise to do after day 25
-    int do_pullups = 1;
-    int do_hang = 1;
+    } // Now, determine which exercise to do after day 25
+    int do_pullups = 1; int do_hang = 1;
     if (day > 25) {
         int week = (day - 1) / 7;
         int day_of_week = (day - 1) % 7;
@@ -263,15 +268,13 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
     up->start_day_pushups++;
     up->current_day_overall++;
     up->woTime = time(NULL);
-    sp(*up); refresh();
-    flushinp();
+    sp(*up); refresh(); flushinp();
     while (getch() != 'x');
 }
 int main(void) {
     setlocale(LC_ALL, ""); initscr();
-    cbreak(); noecho();
-    keypad(stdscr, TRUE); start_color();
-    curs_set(0);
+    cbreak(); noecho(); keypad(stdscr, TRUE); 
+    start_color(); curs_set(0);
     init_pair(1, COLOR_WHITE, COLOR_RED);
     init_pair(2, COLOR_BLACK, COLOR_YELLOW);
     init_pair(3, COLOR_WHITE, COLOR_BLUE);
@@ -302,8 +305,7 @@ int main(void) {
             if (ch == 'q') {
                 endwin(); return 0;
             } else if (ch == 'r') {
-                int aborted = 0;
-                halfdelay(1);
+                int aborted = 0; halfdelay(1);
                 for (int i = 15; i >= 0; i--) {
                     for (int j = 0; j < 10; j++) {
                         custom_flash(1, 50);
@@ -312,12 +314,10 @@ int main(void) {
                         custom_flash(3, 50);
                         int ac = getch();
                         if (ac == 'a' || ac == 'w' || ac == 'h' || ac == 's') {
-                            aborted = 1;
-                            move(19, 0);
-                            clrtoeol();
-                            mvprintw(19, 0, "Continue, 🫡🌞😆🤑💯💰💪🏾 \nYou decided to persevere.");
-                            refresh();
-                            break;
+                    aborted = 1;
+                    move(19, 0); clrtoeol();
+                    mvprintw(19, 0, "Continue, 🫡🌞😆🤑💯💰💪🏾 \nYou decided to persevere.");
+                    refresh(); break;
                         }
                     }
                     if (aborted) break;
