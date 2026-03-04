@@ -31,6 +31,12 @@
 *
 *
 *
+*
+*
+*
+*
+*
+*
 * 
 */
 typedef struct {
@@ -69,11 +75,9 @@ UserProgress load_progress() {
     return up;
 }
 void custom_flash(short pair_index, int rate) {
-    bkgd(COLOR_PAIR(pair_index));
-    refresh();
+    bkgd(COLOR_PAIR(pair_index)); refresh();
     napms(rate); //50 - 80
-    bkgd(COLOR_PAIR(0));
-    refresh();
+    bkgd(COLOR_PAIR(0)); refresh();
 }
 void center_print(int row, const char *fmt, ...) {
     va_list args;
@@ -103,18 +107,15 @@ void display_menu(UserProgress up, int day, int glute_bridges, int dead_bugs, in
     mvprintw(8, start_col, "4. Push-ups:      %3d reps", pushups);
     mvprintw(9, start_col, "5. Plank:         %3d seconds", plank_time);
     mvprintw(10, start_col, "6. Inverted Rows: %3d reps", inverted_rows);
-        // Port/Starboard watch alternation after day 25
     int show_pullups = 1;
     int show_hang = 1;
     if (day > 25) {
         int week = (day - 1) / 7;
         int day_of_week = (day - 1) % 7;
         if (week % 2 == 0) {
-            // Even week: Mon-Thu (0-3) = pullups, Fri-Sun (4-6) = hang
             show_pullups = (day_of_week <= 3);
             show_hang = !show_pullups;
         } else {
-            // Odd week: Mon-Wed (0-2) = pullups, Thu-Sun (3-6) = hang
             show_pullups = (day_of_week <= 2);
             show_hang = !show_pullups;
         }
@@ -129,9 +130,7 @@ void display_menu(UserProgress up, int day, int glute_bridges, int dead_bugs, in
     } else {
         mvprintw(12, start_col, "8. REST");
     }
-/*
 //finish Exercise Preview
-*/
     center_print(14, "Press 's' to start the timer...");
     center_print(15, "Press 'q' to postpone...");
     center_print(16, "Press 'r' to reset the program...");
@@ -140,18 +139,15 @@ void display_menu(UserProgress up, int day, int glute_bridges, int dead_bugs, in
 // Returns 1 if failed, 0 if completed
 int do_static_hold(UserProgress *up, int exercise_num, const char *name, int seconds, const char *emoji) {
     center_print(10, "START: %s %d seconds", name, seconds);
-    refresh();
-    sleep(5);
+    refresh(); sleep(5);
     halfdelay(1);
     for (int i = seconds; i >= 0; i--) {
-        move(12, 0);
-        clrtoeol();
+        move(12, 0); clrtoeol();
         center_print(12, "%s TIME REMAINING: %d seconds", name, i);
         center_print(13, "%s", emoji);
         custom_flash(4, 200);
         int key = getch();
         if (key == 'f') {
-            // Save failure and return to menu
             up->session_failed = 1;
             up->failed_exercise = exercise_num;
             up->failed_time_remaining = i;
@@ -163,21 +159,16 @@ int do_static_hold(UserProgress *up, int exercise_num, const char *name, int sec
         if (i > 0) sleep(1);
     }
     custom_flash(2, 150);
-    move(10, 0);
-    clrtoeol();
-    move(12, 0);
-    clrtoeol();
-    move(13, 0);
-    clrtoeol();
+    move(10, 0); clrtoeol();
+    move(12, 0); clrtoeol();
+    move(13, 0); clrtoeol();
     return 0;
 }
 // Returns 1 if failed, 0 if completed
 int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, const char *emoji, const char *rep_label) {
     center_print(10, "Get ready for %s!", name);
-    custom_flash(2, 200);
-    sleep(5);
-    move(10, 0);
-    clrtoeol();
+    custom_flash(2, 200); sleep(5);
+    move(10, 0); clrtoeol();
     halfdelay(1);
     for (int i = 1; i <= reps; i++) {
         move(12, 0);
@@ -187,23 +178,19 @@ int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, cons
         refresh();
         int key = getch();
         if (key == 'f') {
-            // Save failure and return to menu
             up->session_failed = 1;
             up->failed_exercise = exercise_num;
-            up->failed_reps_remaining = reps - i + 1; // Remaining including current
+            up->failed_reps_remaining = reps - i + 1;
             up->failed_time_remaining = 0;
             up->fail_time = time(NULL);
             sp(*up);
             return 1;
         }
-        custom_flash(4, 150); 
-        sleep(2);
+        custom_flash(4, 150); sleep(2);
     }
     flash();
-    move(12, 0);
-    clrtoeol();
-    move(13, 0);
-    clrtoeol();
+    move(12, 0); clrtoeol();
+    move(13, 0); clrtoeol();
     return 0;
 }
 void run_workout(UserProgress *up, int col, int day, int glute_bridges, int dead_bugs, 
@@ -232,28 +219,22 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
         // Clear failure flag since resuming
         up->session_failed = 0;
         up->failed_exercise = 0;
-    }
-    // Exercise 1: Glute Bridges
+    } // Exercise 1: Glute Bridges
     if (start_exercise <= 1) {
         if (do_reps(up, 1, "Glute Bridges", adjusted_bridges, "🥷🍑⌚💪🏾💯", "Bridge")) return;
-    }
-    // Exercise 2: Dead Bugs
+    } // Exercise 2: Dead Bugs
     if (start_exercise <= 2) {
         if (do_reps(up, 2, "Dead Bugs", adjusted_dead_bugs, "🥷🐛⌚💪🏾💯", "Dead Bug")) return;
-    }
-    // Exercise 3: Lunges
+    } // Exercise 3: Lunges
     if (start_exercise <= 3) {
         if (do_reps(up, 3, "Lunges", adjusted_lunges, "🥷🦵⌚💪🏾💯", "Lunge")) return;
-    }
-    // Exercise 4: Push-ups
+    } // Exercise 4: Push-ups
     if (start_exercise <= 4) {
         if (do_reps(up, 4, "Push-ups", adjusted_pushups, "🥷💪⌚💪🏾💯", "Push-up")) return;
-    }
-    // Exercise 5: Plank
+    } // Exercise 5: Plank
     if (start_exercise <= 5) {
         if (do_static_hold(up, 5, "Plank", adjusted_plank, "🥷📏⌚💪🏾💯")) return;
-    }
-    // Exercise 6: Inverted Rows
+    } // Exercise 6: Inverted Rows
     if (start_exercise <= 6) {
         if (do_reps(up, 6, "Inverted Rows", adjusted_rows, "🥷🚣⌚💪🏾💯", "Row")) return;
     }
@@ -270,17 +251,13 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
             do_pullups = (day_of_week <= 2);
             do_hang = !do_pullups;
         }
-    }
-    // Exercise 7: Pull-ups (conditional)
+    } // Exercise 7: Pull-ups (conditional)
     if (do_pullups && start_exercise <= 7) {
         if (do_reps(up, 7, "Pull-ups", adjusted_pullups, "🥷🆙⌚💪🏾💯", "Pull-up")) return;
-    }
-    // Exercise 8: Bar Hang (conditional)
+    } // Exercise 8: Bar Hang (conditional)
     if (do_hang && start_exercise <= 8) {
         if (do_static_hold(up, 8, "Bar Hang", adjusted_hang, "🥷⛴️⌚💪🏾💯")) return;
     }
-
-    // All complete
     center_print(10, "WORKOUT COMPLETE! GREAT JOB!");
     center_print(12, "Press 'x' to log and exit.");
     up->start_day_pushups++;
@@ -291,12 +268,9 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
     while (getch() != 'x');
 }
 int main(void) {
-    setlocale(LC_ALL, "");
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, TRUE);
-    start_color();
+    setlocale(LC_ALL, ""); initscr();
+    cbreak(); noecho();
+    keypad(stdscr, TRUE); start_color();
     curs_set(0);
     init_pair(1, COLOR_WHITE, COLOR_RED);
     init_pair(2, COLOR_BLACK, COLOR_YELLOW);
@@ -322,13 +296,11 @@ int main(void) {
         clear();
         display_menu(up, day, glute_bridges, dead_bugs, lunges, pushups,
              plank_time, inverted_rows, pullups, hang_time);
-        custom_flash(3, 250);
-        flushinp();
+        custom_flash(3, 250); flushinp();
         int ch;
         while ((ch = getch()) != 's') {
             if (ch == 'q') {
-                endwin();
-                return 0;
+                endwin(); return 0;
             } else if (ch == 'r') {
                 int aborted = 0;
                 halfdelay(1);
@@ -349,20 +321,16 @@ int main(void) {
                         }
                     }
                     if (aborted) break;
-                    move(17, 0);
-                    clrtoeol();
+                    move(17, 0); clrtoeol();
                     center_print(17, "PRESS 'A', 'W', 'S', or 'H' TO ABORT 'R'");
                     refresh();
                 }
                 cbreak();
                 if (aborted) {
-                    move(19, 0);
-                    clrtoeol();
-                    move(17, 0);
-                    clrtoeol();
+                    move(19, 0); clrtoeol();
+                    move(17, 0); clrtoeol();
                     center_print(19, "ABORTED. REGIMEN SAFE.");
-                    refresh();
-                    sleep(2);
+                    refresh(); sleep(2);
                 } else {
                     up.start_day_pushups = 1;
                     up.current_day_overall = 1;
@@ -370,21 +338,15 @@ int main(void) {
                     up.failed_exercise = 0;
                     sp(up);
                     center_print(19, "SYSTEM RESET. RESTART APP.");
-                    refresh();
-                    sleep(2);
-                    endwin();
-                    exit(0);
+                    refresh(); sleep(2);
+                    endwin(); exit(0);
                 }
             }
         }
-        // Start workout
-        clear();
-        refresh();
+        clear(); refresh();
         run_workout(&up, col, day, glute_bridges, dead_bugs, lunges,
                     pushups, plank_time, inverted_rows, pullups, hang_time);
-        //Reload day in case of failure (same day) or completion (next day)
         day = up.current_day_overall;
-        //Recalculate progressions for new day
         pushups = (day > 100) ? 100 : day;
         lunge_progression = 2 + (((day - 1) / 2) * 2);
         lunges = (lunge_progression > 100) ? 100 : lunge_progression;
@@ -399,6 +361,5 @@ int main(void) {
         pullup_progression = 1 + ((day - 1) / 3);
         pullups = (pullup_progression > 34) ? 34 : pullup_progression;
     }
-    endwin();
-    return 0;
+    endwin(); return 0;
 }
