@@ -28,13 +28,9 @@
 *
 *
 *
-*
-*
-*
-*
-*
 * 
 */
+int turbo = 0;
 typedef struct {
     char user_name[50];
     int start_day_pushups;
@@ -53,7 +49,6 @@ void sp(UserProgress up) {
         fclose(f);
     }
 }
-
 UserProgress load_progress() {
     UserProgress up = {"Saitama", 1, 1, 0, 0, 0, 0, 0, 0};
     FILE *f = fopen("progress.dat", "rb");
@@ -88,9 +83,15 @@ UserProgress load_progress() {
     }
     return up;
 }
+void p_sleep(long ms) {
+    struct timespec ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000L;
+    nanosleep(&ts, NULL);
+}
 void custom_flash(short pair_index, int rate) {
     bkgd(COLOR_PAIR(pair_index)); refresh();
-    napms(rate); //50 - 80
+    p_sleep(rate); //50 - 80
     bkgd(COLOR_PAIR(0)); refresh();
 }
 void center_print(int row, const char *fmt, ...) {
@@ -153,7 +154,7 @@ void display_menu(UserProgress up, int day, int glute_bridges, int dead_bugs, in
 // Returns 1 if failed, 0 if completed
 int do_static_hold(UserProgress *up, int exercise_num, const char *name, int seconds, const char *emoji) {
     center_print(10, "START: %s %d seconds", name, seconds);
-    refresh(); sleep(5);
+    refresh(); p_sleep(5000);
     halfdelay(1);
     for (int i = seconds; i >= 0; i--) {
         move(12, 0); clrtoeol();
@@ -170,7 +171,9 @@ int do_static_hold(UserProgress *up, int exercise_num, const char *name, int sec
             sp(*up);
             return 1;
         }
-        if (i > 0) sleep(1);
+//        if (i > 0) p_sleep(1000);
+        if (i > 0) p_sleep(turbo ? 500 : 1000); 
+
     }
     custom_flash(2, 150);
     move(10, 0); clrtoeol();
@@ -181,7 +184,7 @@ int do_static_hold(UserProgress *up, int exercise_num, const char *name, int sec
 // Returns 1 if failed, 0 if completed
 int do_reps(UserProgress *up, int exercise_num, const char *name, int reps, const char *emoji, const char *rep_label) {
     center_print(10, "Get ready for %s!", name);
-    custom_flash(2, 200); sleep(5);
+    custom_flash(2, 200); p_sleep(5000);
     move(10, 0); clrtoeol();
     halfdelay(1);
     for (int i = 1; i <= reps; i++) {
@@ -198,7 +201,9 @@ center_print(13, "%s", emoji); refresh();
             sp(*up);
             return 1;
         }
-        custom_flash(4, 150); sleep(2);
+        custom_flash(4, 150); 
+        p_sleep(turbo ? 1000 : 2000);
+
     }
     flash(); move(12, 0); clrtoeol();
     move(13, 0); clrtoeol(); return 0;
@@ -271,7 +276,7 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
     sp(*up); refresh(); flushinp();
     while (getch() != 'x');
 }
-int main(void) {
+int main(void) { 
     setlocale(LC_ALL, ""); initscr();
     cbreak(); noecho(); keypad(stdscr, TRUE); 
     start_color(); curs_set(0);
@@ -299,9 +304,19 @@ int main(void) {
         clear();
         display_menu(up, day, glute_bridges, dead_bugs, lunges, pushups,
              plank_time, inverted_rows, pullups, hang_time);
+        mvprintw(20, (getmaxx(stdscr) - 20) / 2, "MODE: [%s]", turbo ? "BEAST" : "NORMAL");
+
         custom_flash(3, 250); flushinp();
         int ch;
         while ((ch = getch()) != 's') {
+            if (ch == 't') {
+            turbo = !turbo;
+            clear();
+            display_menu(up, day, glute_bridges, dead_bugs, lunges, pushups, plank_time, inverted_rows, pullups, hang_time);
+            mvprintw(20, (getmaxx(stdscr) - 20) / 2, "MODE: [%s]", turbo ? "BEAST" : "NORMAL");
+            refresh(); continue;
+            }
+
             if (ch == 'q') {
                 endwin(); return 0;
             } else if (ch == 'r') {
@@ -330,7 +345,7 @@ int main(void) {
                     move(19, 0); clrtoeol();
                     move(17, 0); clrtoeol();
                     center_print(19, "ABORTED. REGIMEN SAFE.");
-                    refresh(); sleep(2);
+                    refresh(); p_sleep(2000);
                 } else {
                     up.start_day_pushups = 1;
                     up.current_day_overall = 1;
@@ -338,7 +353,7 @@ int main(void) {
                     up.failed_exercise = 0;
                     sp(up);
                     center_print(19, "SYSTEM RESET. RESTART APP.");
-                    refresh(); sleep(2);
+                    refresh(); p_sleep(2000);
                     endwin(); exit(0);
                 }
             }
