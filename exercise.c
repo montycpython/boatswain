@@ -201,8 +201,8 @@ int lunges, int pushups, int plank_time, int inverted_rows, int pullups, int han
         else if (up->failed_exercise == 2) adjusted_dead_bugs = up->failed_reps_remaining;
         else if (up->failed_exercise == 3) adjusted_lunges = up->failed_reps_remaining;
         else if (up->failed_exercise == 4) adjusted_pushups = up->failed_reps_remaining;
-        else if (up->failed_exercise == 5) adjusted_rows = up->failed_reps_remaining;
-        else if (up->failed_exercise == 6) adjusted_plank = up->failed_time_remaining;
+        else if (up->failed_exercise == 5) adjusted_plank = up->failed_time_remaining;
+        else if (up->failed_exercise == 6) adjusted_rows = up->failed_reps_remaining;
         else if (up->failed_exercise == 7) adjusted_pullups = up->failed_reps_remaining;
         else if (up->failed_exercise == 8) adjusted_hang = up->failed_time_remaining;
         // Clear failure flag since resuming
