@@ -281,8 +281,8 @@ int main(void) {
     int pullups = (pullup_progression > 34) ? 34 : pullup_progression;
     while (1) {
         clear();
-        display_menu(up, day, hang_time, dead_bugs, lunges, pushups, 
-                              inverted_rows, glute_bridges, plank_time, pullups);
+        display_menu(up, day, glute_bridges, dead_bugs, lunges, pushups,
+             plank_time, inverted_rows, pullups, hang_time);
         custom_flash(3, 250);
         flushinp();
         int ch;
