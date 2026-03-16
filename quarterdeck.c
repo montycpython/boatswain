@@ -105,9 +105,9 @@ void save_tasks(Quadrant quads[4]) {
     fclose(f);
 }
 
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 // Quadrant drawing (multi‑line, highlight only when active)
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
     werase(win);
     if (active) {
@@ -121,7 +121,7 @@ void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
 
     int maxy, maxx;
     getmaxyx(win, maxy, maxx);
-    int inner_height = maxy - 3;          // rows available for tasks
+    int inner_height = maxy - 3; // rows available for tasks
     if (inner_height < 1) return;
 
     int row = 0;
@@ -137,7 +137,7 @@ void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
         // Process each line of the task (separated by \n)
         while (*p) {
             if (*p == '\n') {
-                // Draw the line from line_start to just before newline
+                // Draw line from line_start to just before newline
                 int line_len = p - line_start;
                 if (line_len > maxx - 4) line_len = maxx - 4;
                 if (row < inner_height) {
@@ -172,56 +172,11 @@ void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
     wrefresh(win);
 }
 /*
-void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
-    werase(win);
-    if (active) {
-        wattron(win, A_BOLD | A_REVERSE);
-        box(win, 0, 0);
-        wattroff(win, A_BOLD | A_REVERSE);
-    } else {
-        box(win, 0, 0);
-    }
-    mvwprintw(win, 1, 2, "%s", label);
 
-    int maxy, maxx;
-    getmaxyx(win, maxy, maxx);
-    int inner_height = maxy - 3;
-    if (inner_height < 1) return;
-
-    int row = 0;
-    Task *t = quad->head;
-    for (int i = 0; i < quad->top_index && t; i++) t = t->next;
-
-    while (t && row < inner_height) {
-        char *p = t->text;
-        int first_line = 1;
-        while (*p && row < inner_height) {
-            if (!first_line) row++;
-            first_line = 0;
-
-            char *line_start = p;
-            while (*p && *p != '\n') p++;
-            int line_len = p - line_start;
-            if (line_len > maxx - 4) line_len = maxx - 4;
-
-            if (row < inner_height) {
-                if (t == quad->selected && active)
-                    wattron(win, A_REVERSE);
-                mvwprintw(win, 2 + row, 2, "%-.*s", line_len, line_start);
-                if (t == quad->selected && active)
-                    wattroff(win, A_REVERSE);
-                row++;
-            }
-            if (*p == '\n') p++;
-        }
-        t = t->next;
-    }
-    wrefresh(win);
-}
 */
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 // Ensure selected task is visible (task‑based scrolling)
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 void ensure_visible(Quadrant *q, int win_height) {
     int idx = 0;
     Task *t = q->head;
@@ -238,9 +193,9 @@ void ensure_visible(Quadrant *q, int win_height) {
         q->top_index = q->count - win_height;
 }
 
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 // Task management
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 void add_task(Quadrant *q, const char *initial_text) {
     Task *newt = malloc(sizeof(Task));
     strcpy(newt->text, initial_text);
@@ -328,9 +283,9 @@ void free_tasks(Quadrant *q) {
     q->count = q->top_index = 0;
 }
 
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 // Helper: convert text index to screen (row, col)
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 static void index_to_screen(const char *s, int index, int *row, int *col) {
     int r = 0, c = 0;
     for (int i = 0; i < index && s[i]; i++) {
@@ -341,9 +296,9 @@ static void index_to_screen(const char *s, int index, int *row, int *col) {
     *col = c;
 }
 
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 // Multi‑line editor with wrap and colon+! exit
-// -------------------------------------------------------------------
+// ----------------------------------------------------------------
 void edit_task(WINDOW *win, Task *t) {
     scrollok(win, TRUE);
     int idx = (int)strlen(t->text);
@@ -386,24 +341,76 @@ void edit_task(WINDOW *win, Task *t) {
             wscrl(win, (2 + cur_row) - (maxy - 2) + 1);
         wmove(win, 2 + cur_row, 2 + cur_col);
         wrefresh(win);
-
+        /*
         ch = wgetch(win);
-        if (ch == ':' ) {
+        if (ch == ':') {
             int next = wgetch(win);
-            if (next == '!') break;
-            else {
-                if (idx < 255) {
+            waddch(win, ':'); 
+            wrefresh(win); 
+            if (next == '!') break; 
+
+            waddch(win, '\b'); 
+            if (strlen(t->text) < 255) {
+                memmove(t->text + idx + 1, t->text + idx, strlen(t->text + idx) + 1);
+                t->text[idx++] = ':';
+                if (next >= 32 && next <= 126 && strlen(t->text) < 255) {
                     memmove(t->text + idx + 1, t->text + idx, strlen(t->text + idx) + 1);
-                    t->text[idx] = ':';
-                    idx++;
+                    t->text[idx++] = next;
                 }
-                if (next >= 32 && next <= 126 && idx < 255) {
+            }
+        } else {
+            if (next >= 32 && next <= 126 && strlen(t->text) < 255) {
+                memmove(t->text + idx + 1, t->text + idx, strlen(t->text + idx) + 1);
+                t->text[idx++] = next;
+            }
+        }
+
+
+        */
+        ch = wgetch(win);
+        if (ch == ':') {
+            waddch(win, ':'); 
+            wrefresh(win); 
+            int next = wgetch(win);
+
+            if (next == '!') {
+                break; 
+            } else {
+                waddch(win, '\b'); 
+                if (strlen(t->text) < 255) {
+                    memmove(t->text + idx + 1, t->text + idx, strlen(t->text + idx) + 1);
+                    t->text[idx++] = ':';
+                    if (next >= 32 && next <= 126 && strlen(t->text) < 255) {
+                        memmove(t->text + idx + 1, t->text + idx, strlen(t->text + idx) + 1);
+                        t->text[idx++] = next;
+                    }
+                }
+            }
+        }
+
+/*        if (ch == ':') {
+            if (strlen(t->text) < 255) {
+                memmove(t->text + idx + 1, t->text + idx, strlen(t->text + idx) + 1);
+                t->text[idx] = ':';
+                idx++;
+            }
+
+            int next = wgetch(win);
+            if (next == '!') {
+                if (idx > 0) {
+                    memmove(t->text + idx - 1, t->text + idx, strlen(t->text + idx) + 1);
+                    idx--;
+                }
+                break; // Trigger save/exit
+            } else {
+                if (next >= 32 && next <= 126 && strlen(t->text) < 255) {
                     memmove(t->text + idx + 1, t->text + idx, strlen(t->text + idx) + 1);
                     t->text[idx] = next;
                     idx++;
                 }
             }
         }
+*/
         else if (ch == KEY_LEFT) {
             if (idx > 0) idx--;
         }
