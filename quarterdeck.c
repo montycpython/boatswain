@@ -24,6 +24,18 @@ typedef struct {
 // ----------------------------------------------------------------
 // Escaping for file I/O
 // ----------------------------------------------------------------
+
+// This function fills a buffer with the current timestamp
+void get_now_timestamp(char *dest, size_t max_len) {
+    time_t rawtime;
+    struct tm *timeinfo;
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    // Format: YYYY-MM-DD HH:MM:SS
+    strftime(dest, max_len, "%Y-%m-%d %H:%M:%S", timeinfo);
+}
 void escape_string(const char *src, char *dst, size_t dst_size) {
     size_t i = 0, j = 0;
     while (src[i] && j < dst_size - 1) {
@@ -118,28 +130,25 @@ void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
         box(win, 0, 0);
     }
     mvwprintw(win, 1, 2, "%s", label);
-
     int maxy, maxx;
     getmaxyx(win, maxy, maxx);
     int inner_height = maxy - 3; // rows available for tasks
     if (inner_height < 1) return;
-
     int row = 0;
-     
     Task *t = quad->head;
+    /*
     for (int i = 0; i < quad->top_index && t; i++)
         t = t->next;
-    int current_line = 0; // The total count of lines processed across all tasks
+    */
 
+    int current_line = 0; // The total count of lines processed across all tasks
     while (t && row < inner_height) {
         char *p = t->text;
         char *line_start = p;
-
         while (*p) {
             if (*p == '\n') {
                 int line_len = p - line_start;
                 if (line_len > maxx - 4) line_len = maxx - 4;
-
                 // Only draw if this specific line is at or after the scroll position
                 if (current_line >= quad->top_index) {
                     if (row < inner_height) {
@@ -156,12 +165,10 @@ void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
                 p++;
             }
         }
-
         // Handle the last line of the task
         if (line_start < p) {
             int line_len = p - line_start;
             if (line_len > maxx - 4) line_len = maxx - 4;
-
             if (current_line >= quad->top_index) {
                 if (row < inner_height) {
                     if (t == quad->selected && active) wattron(win, A_REVERSE);
@@ -174,7 +181,6 @@ void draw_quad(WINDOW *win, char *label, int active, Quadrant *quad) {
         }
         t = t->next;
     }
-
     wrefresh(win);
 }
 // ----------------------------------------------------------------
@@ -189,29 +195,34 @@ int count_lines(char *text) {
     return count;
 }
 void ensure_visible(Quadrant *q, int height) {
-    if (!q->selected) return;
+    if (!q || !q->selected) return;
 
-    int selected_start_line = 0;
+    int selected_start = 0;
+    int total = 0;
     Task *t = q->head;
-    
-    // Find where the selected task starts in terms of total lines
-    while (t && t != q->selected) {
-        selected_start_line += count_lines(t->text);
+
+    while (t) {
+        if (t == q->selected) selected_start = total;
+        total += count_lines(t->text);
         t = t->next;
     }
-    
-    int task_height = count_lines(q->selected->text);
-    int selected_end_line = selected_start_line + task_height - 1;
 
-    // Scroll UP if the top of the task is above the window
-    if (selected_start_line < q->top_index) {
-        q->top_index = selected_start_line;
-    } 
-    // Scroll DOWN if the bottom of the task is below the window
-    else if (selected_end_line >= q->top_index + height) {
-        q->top_index = selected_end_line - height + 1;
+    int task_h = count_lines(q->selected->text);
+    int selected_end = selected_start + task_h - 1;
+
+    if (selected_start < q->top_index) {
+        q->top_index = selected_start;
     }
+    else if (selected_end >= q->top_index + height) {
+        q->top_index = selected_end - height + 1;
+    }
+
+    // This is the specific line that prevents the blank screen:
+    if (q->top_index > total - height && total > height) q->top_index = total - height;
+    if (q->top_index < 0) q->top_index = 0;
 }
+/*
+*/
 // ----------------------------------------------------------------
 // Task management
 // ----------------------------------------------------------------
@@ -353,7 +364,6 @@ void edit_task(WINDOW *win, Task *t) {
                 col++;
             }
         }
-
         int cur_row, cur_col;
         index_to_screen(t->text, idx, &cur_row, &cur_col);
         if (2 + cur_row >= maxy - 1)
@@ -367,6 +377,13 @@ void edit_task(WINDOW *win, Task *t) {
             int next = wgetch(win);
             if (next == '!') {
                 break; 
+            } else if (next== '#'){
+                //       
+    //if (strcmp(cmd_buffer + 1, "now") == 0) {
+        // Your existing task creation logic here
+   //     get_now_timestamp(new_t->text, 256);
+    //}
+    //break;
             } else {
                 waddch(win, '\b'); 
                 if (strlen(t->text) < 255) {
@@ -407,6 +424,7 @@ void edit_task(WINDOW *win, Task *t) {
         }
     }
 
+////----+>>>>
     curs_set(0);
     echo();
     scrollok(win, FALSE);
@@ -483,13 +501,21 @@ int eisen() {
 
         }
         else if (ch == KEY_DOWN) {
-            if (cur->selected && cur->selected->next)
-                cur->selected = cur->selected->next;
-            else if (!cur->selected && cur->head)
-                cur->selected = cur->head;
-            int maxy, maxx;
-            getmaxyx(q[activeQ], maxy, maxx);
-            ensure_visible(cur, maxy - 3);
+        if (cur->selected && cur->selected->next) {
+            cur->selected = cur->selected->next;
+        } else if (!cur->selected && cur->head) {
+            cur->selected = cur->head;
+        }
+
+        // Get window dimensions for the active quadrant
+        int maxy, maxx;
+        getmaxyx(q[activeQ], maxy, maxx);
+
+        // Define the viewable area (inner height)
+        // Subtract 3 to account for: top border, title line, and bottom border
+        int inner_height = maxy - 3;
+        // Apply the "sliding camera" logic
+        ensure_visible(cur, inner_height);
         }
         else if (ch == '\n' && cur->selected) {
             edit_task(q[activeQ], cur->selected);
@@ -498,10 +524,20 @@ int eisen() {
             waddch(q[activeQ], ':');
             wrefresh(q[activeQ]);
             int next = wgetch(q[activeQ]);
-            if (next == '!') break; 
-            else waddch(q[activeQ], '\b');
-        }
+            if (next == '!') break;
+            else if (next == '#'){
+                //leave every thing above this alone
+                //Gemini, give me the code for here only
+                waddch(q[activeQ], '#');
+                wrefresh(q[activeQ]);
+                if (wgetch(q[activeQ]) == 'n' && wgetch(q[activeQ]) == 'o' && wgetch(q[activeQ]) == 'w') {
+                    get_now_timestamp(buffer, 255);
+                    cur = strlen(buffer);
+                }
+                //Gemini, leave everything below this alone
 
+            } else waddch(q[activeQ], '\b');
+        }
         // Commands
         else if (ch == 'a') {
             add_task(cur, "");
