@@ -528,13 +528,28 @@ int eisen() {
             else if (next == '#'){
                 //leave every thing above this alone
                 //Gemini, give me the code for here only
+                int n = wgetch(q[activeQ]);
+                int o = wgetch(q[activeQ]);
+                int w = wgetch(q[activeQ]);
+                
+                if (n == 'n' && o == 'o' && w == 'w') {
+                    char ts_buffer[256];
+                    get_now_timestamp(ts_buffer, sizeof(ts_buffer));
+                    add_task(cur, ts_buffer);
+                    
+                    int maxy, maxx;
+                    getmaxyx(q[activeQ], maxy, maxx);
+                    ensure_visible(cur, maxy - 3);
+                }
+                /*/Gemini, leave everything below this alone
+                //Gemini, give me the code for here only
                 waddch(q[activeQ], '#');
                 wrefresh(q[activeQ]);
                 if (wgetch(q[activeQ]) == 'n' && wgetch(q[activeQ]) == 'o' && wgetch(q[activeQ]) == 'w') {
                     get_now_timestamp(buffer, 255);
                     cur = strlen(buffer);
                 }
-                //Gemini, leave everything below this alone
+                //Gemini, leave everything below this alone*/
 
             } else waddch(q[activeQ], '\b');
         }
